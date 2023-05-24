@@ -1,16 +1,9 @@
 include LICENSE
 
-recursive-include ledger_api_client/static/payments/js *.js
-recursive-include ledger_api_client/static/payments/img *.svg
-recursive-include ledger_api_client/static/payments/img *.png
-recursive-include ledger_api_client/static/payments/img *.jpg
-recursive-include ledger_api_client/static/oscar/css *.css
-recursive-include ledger_api_client/static/oscar/js/oscar *.js
-recursive-include ledger_api_client/static/oscar/js/bootstrap3 *.js
-recursive-include ledger_api_client/static/ledger_api/images *.png
-recursive-include ledger_api_client/static/ledger_api/images *.jpg
-recursive-include ledger_api_client/static/ledger_api/images *.gif
-recursive-include ledger_api_client/static/ledger_api/ *.css
-recursive-include ledger_api_client/static/ledger_api/ *.js
-recursive-include ledger_api_client/templates *.html *.txt
-recursive-include ledger_api_client/templates/payments *.html *.txt
+recursive-include wagov_utils/static/images *.png
+recursive-include wagov_utils/static/images *.jpg
+recursive-include wagov_utils/static/images *.gif
+recursive-include wagov_utils/static/ *.css
+recursive-include wagov_utils/static/ *.js
+recursive-include wagov_utils/templates *.html *.txt
+recursive-include wagov_utils/templates/wagov_utils *.html *.txt

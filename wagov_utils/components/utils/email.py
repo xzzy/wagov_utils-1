@@ -1,8 +1,9 @@
 import logging
 import mimetypes
 import hashlib
+import datetime
 
-from confy import env
+#from confy import env
 
 import six
 from django.conf import settings
@@ -11,6 +12,9 @@ from django.core.mail import EmailMultiAlternatives, EmailMessage
 from django.template import loader, Template
 from django.utils.encoding import smart_text
 from django.utils.html import strip_tags
+
+# Typing
+from typing import Any, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +41,7 @@ class TemplateEmailBase(object):
     def send_to_user(self, user, context=None):
         return self.send(user.email, context=context)
 
+
     def send(self, to_addresses, from_address=None, context=None, attachments=None, cc=None, bcc=None):
         """
         Send an email using EmailMultiAlternatives with text and html.
@@ -50,7 +55,15 @@ class TemplateEmailBase(object):
         :param cc:
         :return:
         """
-        email_instance = env('EMAIL_INSTANCE','DEV')
+        email_delivery = 'off'
+
+        if hasattr(settings, 'EMAIL_DELIVERY'):        
+            email_delivery = settings.EMAIL_DELIVERY
+        
+        log_hash = int(hashlib.sha1(str(datetime.datetime.now()).encode('utf-8')).hexdigest(), 16) % (10 ** 8)
+        email_instance = 'DEV'        
+        if hasattr(settings, 'EMAIL_INSTANCE'):  
+            email_instance = settings.EMAIL_INSTANCE
         # The next line will throw a TemplateDoesNotExist if html template cannot be found
         html_template = loader.get_template(self.html_template)
         # render html
@@ -60,6 +73,11 @@ class TemplateEmailBase(object):
             txt_body = _render(txt_template, context)
         else:
             txt_body = strip_tags(html_body)
+
+        email_log(str(log_hash)+' '+self.subject+":"+str(to_addresses)+":"+self.html_template)
+        if email_delivery != 'on':
+            print ("EMAIL DELIVERY IS OFF NO EMAIL SENT -- email.py ")
+            return False
 
         # build message
         if isinstance(to_addresses, six.string_types):
@@ -75,22 +93,27 @@ class TemplateEmailBase(object):
         # Convert Documents to (filename, content, mime) attachment
         _attachments = []
         for attachment in attachments:
-            if isinstance(attachment, Document):
-                filename = str(attachment)
-                content = attachment.file.read()
-                mime = mimetypes.guess_type(attachment.filename)[0]
-                _attachments.append((filename, content, mime))
-            else:
-                _attachments.append(attachment)
+            _attachments.append(attachment)
+            
         msg = EmailMultiAlternatives(self.subject, txt_body, from_email=from_address, to=to_addresses,
                 attachments=_attachments, cc=cc, bcc=bcc, 
                 headers={'System-Environment': email_instance}
                 )
         msg.attach_alternative(html_body, 'text/html')
-        try:            
-            msg.send(fail_silently=False)            
+        try:
+            email_log(str(log_hash)+' '+self.subject)
+            msg.send(fail_silently=False)          
+            email_log(str(log_hash)+' Successfully sent to mail gateway')
+            logger.exception("Success sending email to {}".format(to_addresses,))
             return msg
         except Exception as e:
+            email_log(str(log_hash)+' Error Sending - '+str(e))
             logger.exception("Error while sending email to {}: {}".format(to_addresses, e))
             return None
-
+        
+def email_log(line):
+     dt = datetime.datetime.now()
+     print (settings.BASE_DIR)
+     f= open(str(settings.BASE_DIR)+"/logs/email.log","a+")
+     f.write(str(dt.strftime('%Y-%m-%d %H:%M:%S'))+': '+line+"\r\n")
+     f.close()

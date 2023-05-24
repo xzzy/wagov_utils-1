@@ -2,6 +2,7 @@ import logging
 import mimetypes
 import hashlib
 import datetime
+import os
 
 #from confy import env
 
@@ -94,7 +95,7 @@ class TemplateEmailBase(object):
         _attachments = []
         for attachment in attachments:
             _attachments.append(attachment)
-            
+
         msg = EmailMultiAlternatives(self.subject, txt_body, from_email=from_address, to=to_addresses,
                 attachments=_attachments, cc=cc, bcc=bcc, 
                 headers={'System-Environment': email_instance}
@@ -113,7 +114,9 @@ class TemplateEmailBase(object):
         
 def email_log(line):
      dt = datetime.datetime.now()
-     print (settings.BASE_DIR)
-     f= open(str(settings.BASE_DIR)+"/logs/email.log","a+")
+     email_log_path = str(settings.BASE_DIR)+"/logs/email.log"
+     if not os.path.exists(str(settings.BASE_DIR)+"/logs"):
+         os.makedirs(str(settings.BASE_DIR)+"/logs")
+     f= open(email_log_path,"a+")
      f.write(str(dt.strftime('%Y-%m-%d %H:%M:%S'))+': '+line+"\r\n")
      f.close()
